@@ -16,10 +16,10 @@
         let camera, scene, renderer, model;
 
         function init() {
-            // Jelenet létrehozása
+            // Háttérszín nélküli jelenet létrehozása
             scene = new THREE.Scene();
 
-            // Kamera beállítása
+            // Kamera létrehozása
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
             scene.add(camera);
 
@@ -30,7 +30,7 @@
             document.body.appendChild(renderer.domElement);
 
             // WebXR gomb hozzáadása
-            document.body.appendChild(THREE.WebXRManager.createButton(renderer));
+            document.body.appendChild(ARButton.createButton(renderer));
 
             // Fényforrás hozzáadása
             const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
@@ -52,5 +52,6 @@
 
         init();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/webxr/ARButton.js"></script>
 </body>
 </html>
