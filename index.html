@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebXR AR 3D Modell</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@webxr-polyfill/webxr-polyfill.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/vr/WebXRButton.js"></script>
     <style>
@@ -15,22 +14,19 @@
 </head>
 <body>
     <script>
-        // WebXR Polyfill biztosítja a kompatibilitást régebbi eszközökön
-        const polyfill = new WebXRPolyfill();
-
         let camera, scene, renderer, model;
-        
+
         function init() {
             // Alapvető Three.js beállítások
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-            
+
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // WebXR gomb hozzáadása az oldalhoz
+            // WebXR gomb hozzáadása
             document.body.appendChild(WEBXR.createButton(renderer));
 
             // Fényforrás
