@@ -3,26 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Modell AR Nézet</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <title>WebXR AR 3D Modell</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@webxr-polyfill/webxr-polyfill.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/vr/WebXRButton.js"></script>
     <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f0f0f0;
-        }
-        model-viewer {
-            width: 100%;
-            height: 100%;
-        }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
-    <model-viewer src="model.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate>
-        <div slot="poster" class="loading">Betöltés...</div>
-    </model-viewer>
+    <script>
+        // WebXR Polyfill biztosítja a kompatibilitást régebbi eszközökön
+        const polyfill = new WebXRPolyfill();
+
+        let camera, scene, renderer, model;
+        
+        function init() {
+            // Alapvető Three.js beállítások
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            // WebXR gomb hozzáadása az oldalhoz
+            document.body.appendChild(WEBXR.createButton(renderer));
+
+            // Fényforrás
+            const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+            scene.add(light);
+
+            // GLTF modell betöltése
+            const loader = new THREE.GLTFLoader();
+            loader.load('model.glb', (gltf) => {
+                model = gltf.scene;
+                model.scale.set(0.2, 0.2, 0.2);
+                scene.add(model);
+            });
+
+            renderer.setAnimationLoop(render);
+        }
+
+        function render() {
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
 </body>
 </html>
