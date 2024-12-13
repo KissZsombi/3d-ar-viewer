@@ -6,7 +6,7 @@
     <title>WebXR AR 3D Modell</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/vr/WebXRButton.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/webxr/WebXRButton.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
@@ -17,7 +17,7 @@
         let camera, scene, renderer, model;
 
         function init() {
-            // Alapvető Three.js beállítások
+            // Háttérszín nélküli jelenet létrehozása
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
@@ -27,9 +27,10 @@
             document.body.appendChild(renderer.domElement);
 
             // WebXR gomb hozzáadása
-            document.body.appendChild(WEBXR.createButton(renderer));
+            const xrButton = new WebXRButton(renderer);
+            document.body.appendChild(xrButton.domElement);
 
-            // Fényforrás
+            // Fényforrás hozzáadása
             const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
             scene.add(light);
 
@@ -41,11 +42,9 @@
                 scene.add(model);
             });
 
-            renderer.setAnimationLoop(render);
-        }
-
-        function render() {
-            renderer.render(scene, camera);
+            renderer.setAnimationLoop(() => {
+                renderer.render(scene, camera);
+            });
         }
 
         init();
