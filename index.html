@@ -15,98 +15,105 @@
 </head>
 <body>
     <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
-      "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js",
-      "three/examples/jsm/webxr/ARButton": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js"
-    }
-  }
-</script>
-<script type="module">
-  import * as THREE from 'three'; // Most már működik a csupasz specifikáció
-  import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
-  import {ARButton} from 'three/examples/jsm/webxr/ARButton';
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+          "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js",
+          "three/examples/jsm/webxr/ARButton": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js"
+        }
+      }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+        import { ARButton } from 'three/examples/jsm/webxr/ARButton';
 
         let camera, scene, renderer;
         let reticle;
+        let hitTestSource = null;
+        let hitTestSourceRequested = false;
 
         init();
         animate();
 
         function init() {
             scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 20 );
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setPixelRatio( window.devicePixelRatio );
-            renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.xr.enabled = true;
-            document.body.appendChild( renderer.domElement );
+            document.body.appendChild(renderer.domElement);
 
-            document.body.appendChild( ARButton.createButton( renderer, { requiredFeatures: [ 'hit-test' ] } ) );
+            document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
 
-            // Reticle létrehozása (segít a modell elhelyezésében)
-            const geometry = new THREE.RingGeometry( 0.15, 0.2, 32 ).rotateX( - Math.PI / 2 );
+            const geometry = new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2);
             const material = new THREE.MeshBasicMaterial();
-            reticle = new THREE.Mesh( geometry, material );
+            reticle = new THREE.Mesh(geometry, material);
             reticle.matrixAutoUpdate = false;
             reticle.visible = false;
-            scene.add( reticle );
+            scene.add(reticle);
 
-            // GLTF modell betöltése
             const loader = new GLTFLoader();
-            loader.load( 'model.glb', function ( gltf ) {
-                gltf.scene.scale.set(0.5,0.5,0.5); // Modell méretének beállítása
-                scene.add( gltf.scene );
-            } );
+            const modelURL = 'https://raw.githubusercontent.com/KissZsombi/3d-ar-viewer/main/model.glb'; // Helyes URL!
+            loader.load(modelURL, function (gltf) {
+                gltf.scene.scale.set(0.5, 0.5, 0.5);
+                scene.add(gltf.scene);
+            }, function (xhr) {
+                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            }, function (error) {
+                console.error('An error happened loading the model:', error); // Részletes hibakiírás!
+                alert("A modell betöltése sikertelen!"); // Felhasználói visszajelzés
+            });
 
-            window.addEventListener( 'resize', onWindowResize );
+            window.addEventListener('resize', onWindowResize);
         }
 
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize( window.innerWidth, window.innerHeight );
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
         function animate() {
-            renderer.setAnimationLoop( render );
+            renderer.setAnimationLoop(render);
         }
 
-        function render( timestamp, frame ) {
-            if ( frame ) {
+        function render(timestamp, frame) {
+            if (frame) {
                 const referenceSpace = renderer.xr.getReferenceSpace();
                 const session = renderer.xr.getSession();
 
-                if ( hitTestSourceRequested === false ) {
-                    session.requestReferenceSpace( 'viewer' ).then( function ( referenceSpace ) {
-                        session.requestHitTestSource( { space: referenceSpace } ).then( function ( source ) {
+                if (hitTestSourceRequested === false) {
+                    session.requestReferenceSpace('viewer').then(function (referenceSpace) {
+                        session.requestHitTestSource({ space: referenceSpace }).then(function (source) {
                             hitTestSource = source;
-                        } );
-                    } );
+                        });
+                    });
                     hitTestSourceRequested = true;
                 }
 
-                if ( hitTestSource ) {
-                    const hitTestResults = frame.getHitTestResults( hitTestSource );
+                if (hitTestSource) {
+                    const hitTestResults = frame.getHitTestResults(hitTestSource);
 
-                    if ( hitTestResults.length ) {
-                        const hit = hitTestResults[ 0 ];
-
+                    if (hitTestResults.length) {
+                        const hit = hitTestResults[0];
                         reticle.visible = true;
-                        reticle.matrix.fromArray( hit.getPose( referenceSpace ).transform.matrix );
+                        reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
+
+                        // Ezt ide tettem, hogy akkor is fusson, ha van találat:
+                        renderer.render(scene, camera);
                     } else {
                         reticle.visible = false;
+                        renderer.render(scene, camera); // Ezt is ide tettem
                     }
+                } else { // Ha nincs hitTestSource, akkor is rendereljünk, hogy lássuk, mi történik
+                    renderer.render(scene, camera);
                 }
             }
-
-            renderer.render( scene, camera );
         }
-        let hitTestSource = null;
-        let hitTestSourceRequested = false;
     </script>
 </body>
 </html>
