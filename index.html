@@ -4,48 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebXR AR 3D Modell</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/webxr/ARButton.js"></script>
-    <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-    </style>
-</head>
-<body>
-    <script>
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
+        import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js';
+
         let camera, scene, renderer, model;
 
         function init() {
-            // Háttérszín nélküli jelenet létrehozása
             scene = new THREE.Scene();
 
-            // Kamera létrehozása
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
             scene.add(camera);
 
-            // Renderer beállítása
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.xr.enabled = true;
             document.body.appendChild(renderer.domElement);
 
-            // WebXR gomb hozzáadása
             document.body.appendChild(ARButton.createButton(renderer));
 
-            // Fényforrás hozzáadása
             const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
             scene.add(light);
 
-            // GLTF modell betöltése
-            const loader = new THREE.GLTFLoader();
+            const loader = new GLTFLoader();
             loader.load('model.glb', (gltf) => {
                 model = gltf.scene;
                 model.scale.set(0.2, 0.2, 0.2);
                 scene.add(model);
             });
 
-            // Animációs ciklus
             renderer.setAnimationLoop(() => {
                 renderer.render(scene, camera);
             });
@@ -53,5 +41,11 @@
 
         init();
     </script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
 </body>
 </html>
