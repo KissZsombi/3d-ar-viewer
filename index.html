@@ -14,10 +14,19 @@
     </style>
 </head>
 <body>
-    <script type="module">
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
-        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
-        import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js';
+    <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+      "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js",
+      "three/examples/jsm/webxr/ARButton": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js"
+    }
+  }
+</script>
+<script type="module">
+  import * as THREE from 'three'; // Most már működik a csupasz specifikáció
+  import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader';
+  import {ARButton} from 'three/examples/jsm/webxr/ARButton';
 
         let camera, scene, renderer;
         let reticle;
